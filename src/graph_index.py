@@ -3,6 +3,7 @@ import sys
 import requests
 import pickle
 import hashlib
+from optparse import OptionParser
 
 def graph_index_iterator(end_point, size, last=0, end=sys.maxsize):
     headers = {"Content-Type": "application/sparql-query",
@@ -101,10 +102,25 @@ class GraphIndex():
         
 def main():
     index = GraphIndex()
-    for r in graph_index_iterator(" http://34.105.165.142:3030/latest/sparql", 50000, 0):# , 200000): #, 2500000):
+    for r in graph_index_iterator(options.endpoint, 50000, 0, options.max_records):# , 200000): #, 2500000):
         index.add(r)
     
-    with open("index.pickle", "wb") as f:
+    with open(options.output_file, "wb") as f:
         pickle.dump(index, f)
+    print("Done")
 
-main()
+if __name__ == "__main__":
+    parser = OptionParser()
+    parser.add_option("-e", "--endpoint", dest="endpoint",
+                    help="sparql endpoint", metavar="ENDPOINT"
+                    )
+    parser.add_option("-m", "--max", dest="max_records",
+                    help="max records to process", metavar="MAX_RECORDS",
+                    default=sys.maxsize, type="int",
+                    )
+    parser.add_option("-o", "--output", dest="output_file",
+                    help="output file", metavar="OUTPUT"
+                    , default="/usr/share/index.pickle")
+    (options, args) = parser.parse_args()
+    print(options, args)  
+    main()
